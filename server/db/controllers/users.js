@@ -28,12 +28,50 @@ module.exports = {
   login(req, res) {
     return User.authenticate(req.body)
       .then(user => res.json({ user }))
-      .catch(err => handleError(res, err))
+      .catch(err => handleError(res, err));
   },
 
   signup(req, res) {
     return User.register(req.body)
       .then(user => res.json({ user }))
+      .catch(err => handleError(res, err));
+  },
+
+  findByUsername(req, res) {
+    const { username } = req.params;
+
+    return User.findByUsername(username)
+      .then(user => res.json({ user }))
+      .catch(err => handleError(res, err));
+  },
+
+  fetchFollowStatus(req, res) {
+    const { user, params } = req;
+    const { id: userId } = user;
+    const { username } = params;
+
+    return User.fetchFollowStatus(userId, username)
+      .then(({ user, isFollowing }) => res.json({ user, isFollowing }))
+      .catch(err => handleError(res, err));
+  },
+
+  follow(req, res) {
+    const { user, params } = req;
+    const { id: userId } = user;
+    const { username } = params;
+
+    return User.follow(userId, username)
+      .then(result => res.json({ success: !!result }))
+      .catch(err => handleError(res, err));
+  },
+
+  unfollow(req, res) {
+    const { user, params } = req;
+    const { id: userId } = user;
+    const { username } = params;
+
+    return User.unfollow(userId, username)
+      .then(result => res.json({ success: !!result }))
       .catch(err => handleError(res, err));
   }
 };

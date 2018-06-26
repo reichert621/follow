@@ -21,6 +21,10 @@ api.post('/signup', users.signup);
 api.post('/login', auth, users.login);
 api.all('/logout', logout);
 api.get('/me', isAuthenticated, users.getCurrentUser);
+api.get('/users/:username', isAuthenticated, users.findByUsername);
+api.get('/users/:username/status', isAuthenticated, users.fetchFollowStatus);
+api.post('/users/:username/follow', isAuthenticated, users.follow);
+api.post('/users/:username/unfollow', isAuthenticated, users.unfollow);
 
 api.get('/locations/all', locations.fetch);
 api.get('/locations/me', isAuthenticated, locations.fetchMyLocations);
