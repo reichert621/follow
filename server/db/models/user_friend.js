@@ -56,7 +56,6 @@ const destroy = (userId, friendId) => {
     .del();
 };
 
-
 const isFollowing = (userId, friendId) => {
   return findOne({ userId, friendId })
     .then(found => !!found);

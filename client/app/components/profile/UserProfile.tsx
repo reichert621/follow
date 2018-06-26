@@ -44,7 +44,6 @@ class Profile extends React.Component<ProfileProps, ProfileState> {
 
     return toggleFollowByUsername(username, shouldFollow)
       .then(result => {
-        console.log('result???', result);
         return this.setState({ isFollowing: shouldFollow });
       })
       .catch(err => {
