@@ -3,6 +3,7 @@
 @font-san-serif: 'Helvetica Neue', Arial, san-serif;
 
 /* Colors */
+@background-gray: #fafafa;
 @light-gray: #eee;
 @light-gray-2: #D8D8D8;
 @light-gray-3: #eaeaea;
@@ -26,6 +27,7 @@
 html,
 body,
 .app {
+  background-color: @background-gray;
   height: 100%;
   font-family: @font-san-serif;
   font-size: 18px;
@@ -216,6 +218,10 @@ a {
   text-overflow: ellipsis;
 }
 
+.text-blue {
+  color: @bright-blue;
+}
+
 .text-red {
   color: @red;
 }
@@ -225,7 +231,7 @@ a {
 }
 
 .leaflet-container {
-  height: 560px;
+  height: 720px;
   width: 100%;
   margin: 0 auto;
 }

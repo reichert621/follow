@@ -2,10 +2,11 @@ const crypto = require('crypto');
 const { first, omit } = require('lodash');
 const knex = require('../knex.js');
 const UserFriend = require('./user_friend');
+const Location = require('./location');
 
 const reject = (msg) => Promise.reject(new Error(msg));
 
-const Users = () => knex('users');
+const User = () => knex('users');
 
 const makeSalt = (num = 20) => {
   return crypto
@@ -54,14 +55,13 @@ const sanitized = (params) => {
 };
 
 const fetch = (where = {}) => {
-  return Users()
+  return User()
     .select()
     .where(where);
 };
 
 const findOne = (where) => {
-  return fetch(where).first()
-    .then(user => formatted(user));
+  return fetch(where).first();
 };
 
 const findById = (id) => {
@@ -77,7 +77,7 @@ const findByEmail = (email) => {
 };
 
 const create = (params) => {
-  return Users()
+  return User()
     .returning('id')
     .insert(sanitized(params))
     .then(first)
@@ -106,6 +106,33 @@ const register = (params) => {
 const authenticate = ({ username, password }) => {
   return findByUsername(username)
     .then(user => verifyUser(user, password));
+};
+
+const fetchFriendsByUserId = (userId, where = {}) => {
+  return User()
+    .select('u.*')
+    .from('users as u')
+    .innerJoin('user_friends as uf', 'uf.friendId', 'u.id')
+    .where({ ...where, 'uf.userId': userId })
+    .then(friends => {
+      return friends.map(formatted);
+    });
+};
+
+const fetchFriendsWithLocations = (userId, where = {}) => {
+  return fetchFriendsByUserId(userId, where)
+    .then(friends => {
+      const promises = friends.map(friend => {
+        const { id: friendId } = friend;
+
+        return Location.fetchByUserId(friendId)
+          .then(locations => {
+            return { ...friend, locations };
+          });
+      });
+
+      return Promise.all(promises);
+    });
 };
 
 const fetchFollowStatus = async (userId, username) => {
@@ -157,6 +184,8 @@ module.exports = {
   register,
   authenticate,
   verifyUser,
+  fetchFriendsByUserId,
+  fetchFriendsWithLocations,
   fetchFollowStatus,
   unfollow,
   follow
