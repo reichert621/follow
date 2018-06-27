@@ -1,5 +1,27 @@
+@white: #fff;
 @light-gray: #eee;
+@light-gray-2: #D8D8D8;
+@light-gray-3: #eaeaea;
+@inactive-gray: #D2D2D2;
 @gray: #979797;
+@gray-2: #bbbbbb;
+@bright-blue: #33A2CC;
+@light-blue: #add9ea;
+
+.map-container {
+  max-width: 1080px;
+  margin: 40px auto;
+  padding: 0px 40px;
+  width: 72%;
+}
+
+.friends-list-container {
+  margin: 40px auto;
+  max-width: 560px;
+  padding-right: 40px;
+  padding-left: 8px;
+  width: 28%;
+}
 
 .location-selector {
   display: inline-block;
@@ -44,4 +66,67 @@
 
 .react-datepicker-popper {
   z-index: 9999;
+}
+
+.current-user-card-container {
+  border-bottom: 1px solid @light-gray-2;
+  margin-bottom: 16px;
+}
+
+// TODO: move to different file
+.friend-card-container {
+  background-color: @white;
+  border: 1px solid @light-gray-2;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  padding: 16px;
+
+  &:hover {
+    border-color: @light-blue;
+    cursor: pointer;
+    margin-left: -2px;
+    margin-right: 2px;
+    margin-top: -2px;
+    margin-bottom: 18px;
+
+    box-shadow: 2px 4px 16px 0px rgba(210, 210, 210, 0.8);
+    -webkit-box-shadow: 2px 4px 16px 0px rgba(210, 210, 210, 0.8);
+    -moz-box-shadow: 2px 4px 16px 0px rgba(210, 210, 210, 0.8);
+
+    transition: all ease 0.2s;
+    -webkit-transition: all ease 0.2s;
+  }
+
+  &.selected {
+    border-color: @bright-blue;
+
+    h3 {
+      color: @bright-blue;
+    }
+  }
+
+  .friend-location-label {
+    color: @gray;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    margin-bottom: 2px;
+  }
+
+  .friend-location-container {
+    margin-bottom: 8px;
+  }
+
+  .friend-location-date {
+    font-size: 14px;
+    line-height: 22px;
+  }
+}
+
+@media (max-width: 980px) {
+  .map-container,
+  .friends-list-container {
+    float: none;
+    padding: 0px 32px;
+    width: 100%;
+  }
 }

@@ -45,6 +45,14 @@ module.exports = {
       .catch(err => handleError(res, err));
   },
 
+  fetchMyFriends(req, res) {
+    const { id: userId } = req.user;
+
+    return User.fetchFriendsWithLocations(userId)
+      .then(friends => res.json({ friends }))
+      .catch(err => handleError(res, err));
+  },
+
   fetchFollowStatus(req, res) {
     const { user, params } = req;
     const { id: userId } = user;

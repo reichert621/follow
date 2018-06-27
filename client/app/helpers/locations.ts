@@ -1,4 +1,4 @@
-import { capitalize, sortBy } from 'lodash';
+import { capitalize, sortBy, reduce, max } from 'lodash';
 import * as moment from 'moment';
 import { get, post } from './http';
 import { LatLngExpression } from 'leaflet';
@@ -13,7 +13,13 @@ export interface ILocation {
   date?: string | moment.Moment;
 }
 
-const formatLocation = (location: ILocation): ILocation => {
+export enum LocationComparator {
+  SAME = 0,
+  BEFORE = -1,
+  AFTER = 1
+}
+
+export const formatLocation = (location: ILocation): ILocation => {
   const { latitude: lat, longitude: lng, date } = location;
 
   return {
@@ -22,6 +28,58 @@ const formatLocation = (location: ILocation): ILocation => {
     lng,
     date: moment(date)
   };
+};
+
+export const compareLocationDates = (l1: ILocation, l2: ILocation) => {
+  const { date: d1 } = l1;
+  const { date: d2 } = l2;
+
+  if (moment(d1).isSame(moment(d2), 'day')) {
+    return LocationComparator.SAME;
+  } else if (moment(d2).isAfter(moment(d1))) {
+    return LocationComparator.AFTER;
+  } else {
+    return LocationComparator.BEFORE;
+  }
+};
+
+export const findCurrentLocation = (locations: ILocation[]) => {
+  const today = moment();
+
+  return reduce(locations, (current, location) => {
+    const { date: currentDate } = current;
+    const { date: nextDate } = location;
+    const currentDiff = today.diff(moment(currentDate));
+    const nextDiff = today.diff(moment(nextDate));
+
+    if (nextDiff >= 0 && nextDiff < currentDiff) {
+      return location;
+    } else {
+      return current;
+    }
+  });
+};
+
+export const findNextLocation = (locations: ILocation[]) => {
+  const today = moment();
+
+  return reduce(locations, (current, location) => {
+    const { date: nextDate } = location;
+    const nextDiff = moment(nextDate).diff(today);
+
+    if (!current) {
+      return (nextDiff < 0) ? current : location;
+    }
+
+    const { date: currentDate } = current;
+    const currentDiff = moment(currentDate).diff(today);
+
+    if (nextDiff >= 0 && nextDiff < currentDiff) {
+      return location;
+    } else {
+      return current;
+    }
+  }, null);
 };
 
 export const fetchCoordinates = (address: string): Promise<any> => {
@@ -89,6 +147,15 @@ const calculateDistance = (p1: ILocation, p2: ILocation) => {
 
   // Pythagorean theorem
   return Math.sqrt(square(deltaLat) + square(deltaLng));
+};
+
+export const calculateMaxDistance = (locations: ILocation[]) => {
+  const current = findCurrentLocation(locations);
+  const distances = locations.map(location => {
+    return calculateDistance(current, location);
+  });
+
+  return max(distances);
 };
 
 const calculateTheta = (p1: ILocation, p2: ILocation) => {

@@ -21,6 +21,7 @@ api.post('/signup', users.signup);
 api.post('/login', auth, users.login);
 api.all('/logout', logout);
 api.get('/me', isAuthenticated, users.getCurrentUser);
+api.get('/friends', isAuthenticated, users.fetchMyFriends)
 api.get('/users/:username', isAuthenticated, users.findByUsername);
 api.get('/users/:username/status', isAuthenticated, users.fetchFollowStatus);
 api.post('/users/:username/follow', isAuthenticated, users.follow);
