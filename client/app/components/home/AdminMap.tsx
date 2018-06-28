@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
-import Datepicker from 'react-datepicker';
-import { Async } from 'react-select';
+import { all } from 'bluebird';
 import * as moment from 'moment';
-import { debounce } from 'lodash';
 import { LatLngExpression, Icon } from 'leaflet';
 import {
   Map,
@@ -11,63 +9,63 @@ import {
   TileLayer,
   Marker,
 } from 'react-leaflet';
-import 'react-datepicker/dist/react-datepicker.css';
-import 'react-select/dist/react-select.css';
 import 'leaflet/dist/leaflet.css';
 import {
   ILocation,
   LocationComparator,
-  IconColor,
   IconSize,
+  IconColor,
   IconOptions,
-  fetchCoordinates,
-  fetchSuggestions,
-  fetchPlaceDetails,
+  formatLocation,
   getCurveCoordinates,
   fetchMyLocations,
-  addMyLocation,
   calculateMaxDistance,
   compareLocationDates,
   findCurrentLocation,
-  findNextLocation,
-  removeUserLocation
+  findNextLocation
 } from '../../helpers/locations';
-import { IUser, fetchCurrentUser } from '../../helpers/users';
-import { Callback } from '../../helpers/utils';
+import {
+  IUser,
+  fetchCurrentUser,
+  fetchActiveUsers
+} from '../../helpers/users';
 import NavBar, { NavItem } from '../navbar/NavBar';
-import { LocationCard } from '../common';
-import '../home/Map.less';
+import { FriendCard } from '../common';
+import './Map.less';
 
 interface MapProps extends RouteComponentProps<{}> {}
 
 interface MapState {
-  query: string;
-  date: moment.Moment;
-  option: any;
   currentUser: IUser;
+  selected: number;
   locations: ILocation[];
-  highlighted: ILocation;
+  previewing: number;
+  preview: ILocation[];
+  friends: IUser[];
 }
 
-class MyProfile extends React.Component<MapProps, MapState> {
-  timeout: number = null;
-
+class DashboardMap extends React.Component<MapProps, MapState> {
   constructor(props: MapProps) {
     super(props);
 
     this.state = {
-      query: '',
-      date: null,
-      option: null,
       currentUser: null,
+      selected: null,
+      previewing: null,
+      preview: [],
       locations: [],
-      highlighted: null
+      friends: []
     };
   }
 
   componentDidMount() {
     return this.fetchCurrentUser()
-      .then(() => this.fetchMyLocations());
+      .then(() => {
+        return all([
+          this.fetchMyLocations(),
+          this.fetchUsers()
+        ]);
+      });
   }
 
   fetchCurrentUser() {
@@ -75,12 +73,31 @@ class MyProfile extends React.Component<MapProps, MapState> {
 
     return fetchCurrentUser()
       .then(currentUser => {
-        return this.setState({ currentUser });
+        return this.setState({
+          currentUser,
+          selected: currentUser.id
+        });
       })
       .catch(err => {
         console.log('Error fetching current user!', err);
 
         return history.push('/login');
+      });
+  }
+
+  fetchUsers() {
+    const { currentUser } = this.state;
+
+    return fetchActiveUsers()
+      .then(users => {
+        return this.setState({
+          friends: users.filter(({ id: userId }) => {
+            return userId !== currentUser.id;
+          })
+        });
+      })
+      .catch(err => {
+        console.log('Error fetching friends!', err);
       });
   }
 
@@ -96,62 +113,6 @@ class MyProfile extends React.Component<MapProps, MapState> {
       })
       .catch(err => {
         console.log('Error fetching locations!', err);
-      });
-  }
-
-  fetchCoordinates(query: string) {
-    return fetchCoordinates(query)
-      .then(location => {
-        const { locations = [] } = this.state;
-
-        return this.setState({
-          query: '',
-          locations: locations.concat(location)
-        });
-      })
-      .catch(err => {
-        console.log('Error fetching place details!', err);
-      });
-  }
-
-  fetchSuggestions(input: string) {
-    if (!input || !input.length || input.length < 3) {
-      return Promise.resolve({ options: [] });
-    }
-
-    return fetchSuggestions(input)
-      .then(suggestions => {
-        return { options: suggestions };
-      })
-      .catch(err => {
-        console.log('Error fetching suggestions!', err);
-      });
-  }
-
-  debouncedSuggestions = debounce((input: string, callback: Callback) => {
-    this.fetchSuggestions(input)
-      .then(suggestions => callback(null, suggestions))
-      .catch(err => callback(err));
-  }, 500);
-
-  handleAddLocation() {
-    const { date, option = {}, locations = [] } = this.state;
-    const placeId = option && option.placeId;
-
-    if (!placeId || !date) return Promise.resolve(null);
-
-    return fetchPlaceDetails(placeId)
-      .then(location => addMyLocation(date, location))
-      .then(() => this.fetchMyLocations())
-      .then(() => {
-        return this.setState({
-          query: '',
-          date: null,
-          option: null
-        });
-      })
-      .catch(err => {
-        console.log('Error fetching place details!', err);
       });
   }
 
@@ -276,16 +237,44 @@ class MyProfile extends React.Component<MapProps, MapState> {
     return 5;
   }
 
-  getMapCenter(current: ILocation, highlighted: ILocation): LatLngExpression {
+  handleFriendSelected(friend: IUser) {
+    const { id, locations = [] } = friend;
+
+    return this.setState({
+      selected: id,
+      locations: locations.map(formatLocation)
+    });
+  }
+
+  handleFriendPreview(friend: IUser) {
+    const { id, locations = [] } = friend;
+
+    return this.setState({
+      previewing: id,
+      preview: locations.map(formatLocation)
+    });
+  }
+
+  handleEndPreview() {
+    return this.setState({ previewing: null, preview: [] });
+  }
+
+  isUserSelected(user: IUser) {
+    const userId = user && user.id;
+
+    return userId && (userId === this.state.selected);
+  }
+
+  getMapCenter(current: ILocation, preview: ILocation): LatLngExpression {
     const DEFAULT_CENTER: LatLngExpression = [
       37.782504749999994,
       -98.78153264843465
     ];
-    const { lat: highlightLat, lng: highlightLng } = highlighted || {} as ILocation;
     const { lat: currentLat, lng: currentLng } = current || {} as ILocation;
+    const { lat: previewLat, lng: previewLng } = preview || {} as ILocation;
 
-    if (highlightLat && highlightLng) {
-      return [highlightLat, highlightLng];
+    if (previewLat && previewLng) {
+      return [previewLat, previewLng];
     } else if (currentLat && currentLng) {
       return [currentLat, currentLng];
     } else {
@@ -293,86 +282,37 @@ class MyProfile extends React.Component<MapProps, MapState> {
     }
   }
 
-  isHighlighted(location: ILocation) {
-    const { highlighted } = this.state;
-
-    return highlighted && location && (highlighted.id === location.id);
-  }
-
-  handleStartHighlight(location: ILocation) {
-    window.clearTimeout(this.timeout);
-
-    return this.setState({ highlighted: location });
-  }
-
-  handleStopHighlight() {
-    this.timeout = window.setTimeout(() => {
-      return this.setState({ highlighted: null });
-    }, 400);
-  }
-
-  handleRemoveLocation(location: ILocation) {
-    const { id: locationId } = location;
-
-    return removeUserLocation(locationId)
-      .then(() => this.fetchMyLocations())
-      .catch(err => {
-        console.log('Error removing location!', err);
-      });
-  }
-
-  // TODO: DRY up! (see Map.tsx)
   render() {
     const {
-      date,
-      option,
+      currentUser,
+      selected,
       locations = [],
-      highlighted
+      preview = [],
+      previewing,
+      friends = []
     } = this.state;
 
     // TODO: might be good to slice up locations into 4 categories:
     // Past, current, next, and future.
 
-    const reversed = locations.slice().reverse();
     const currentLocation = findCurrentLocation(locations);
+    const currentPreviewLocation = findCurrentLocation(preview);
     const maxDistance = calculateMaxDistance(locations);
+    const maxPreviewDistance = calculateMaxDistance(preview);
     const zoom = this.getZoom(maxDistance);
+    const previewZoom = this.getZoom(maxPreviewDistance);
     const url = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
-    const center = this.getMapCenter(currentLocation, highlighted);
+    const center = this.getMapCenter(currentLocation, currentPreviewLocation);
     const polylines = this.generatePolylines(locations);
+    const previewPolylines = this.generatePolylines(preview, true);
 
     return (
       <div className=''>
         <NavBar
-          title='My Profile'
-          active={NavItem.PROFILE} />
+          title='Find Friends'
+          active={NavItem.ALL} />
 
         <div className='map-container pull-left'>
-          <div className='clearfix'
-            style={{ marginBottom: 8 }}>
-            <Async
-              className='location-selector pull-left'
-              placeholder='Search locations...'
-              multi={false}
-              value={option}
-              onChange={(input) => this.setState({ option: input })}
-              valueKey='description'
-              labelKey='description'
-              loadOptions={this.debouncedSuggestions}
-              backspaceRemoves={false} />
-
-            <Datepicker
-              className='input-default -inline'
-              placeholderText='Select date...'
-              selected={date}
-              onChange={date => this.setState({ date })} />
-
-            <button className='btn-primary'
-              onClick={this.handleAddLocation.bind(this)}>
-              Add
-            </button>
-          </div>
-
           <Map center={center} zoom={zoom}>
             <TileLayer
               attribution='&amp;copy <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors'
@@ -394,49 +334,79 @@ class MyProfile extends React.Component<MapProps, MapState> {
             }
 
             {
+              previewPolylines.map((polyline, key) => {
+                const { positions, opacity } = polyline;
+
+                return (
+                  <Polyline
+                    key={key}
+                    color={'#979797'}
+                    positions={positions}
+                    weight={1}
+                    opacity={opacity} />
+                );
+              })
+            }
+
+            {
               locations.map((location, key) => {
                 const { lat, lng, date } = location;
                 const { date: currentDate } = currentLocation;
                 const isBefore = moment(date).isBefore(moment(currentDate));
-                const isHighlighted = this.isHighlighted(location);
-                const opacity = (highlighted || isBefore) ? 0.4 : 1.0;
-                const icon = isHighlighted
-                  ? this.getIcon({ size: IconSize.LG, color: IconColor.BLUE })
-                  : this.getLocationIcon(currentLocation, location);
+                const opacity = isBefore ? 0.4 : 1.0;
 
                 return (
                   <Marker
                     key={key}
-                    icon={icon}
+                    icon={this.getLocationIcon(currentLocation, location)}
                     position={[lat, lng]}
-                    opacity={isHighlighted ? 1.0 : opacity}
+                    opacity={opacity}
                     onClick={(e: any) => console.log('Marker clicked!', e)} />
+                );
+              })
+            }
+
+            {
+              preview.map((location, key) => {
+                const { lat, lng, date } = location;
+                const { date: previewDate } = currentPreviewLocation;
+                const isBefore = moment(date).isBefore(moment(previewDate));
+                const opacity = isBefore ? 0.2 : 0.8;
+
+                return (
+                  <Marker
+                    key={key}
+                    icon={this.getLocationIcon(currentPreviewLocation, location)}
+                    position={[lat, lng]}
+                    opacity={opacity} />
                 );
               })
             }
           </Map>
         </div>
 
-        <div className='locations-list-container pull-right'>
-          <h2>Locations</h2>
-
-          <div className={locations && locations.length ? 'hidden' : ''}>
-            No locations logged.
+        <div className='friends-list-container pull-right'>
+          <div className='current-user-card-container'>
+            <FriendCard
+              friend={currentUser}
+              canViewProfile={true}
+              isSelected={this.isUserSelected(currentUser)}
+              onSelectFriend={() => this.handleFriendSelected(currentUser)}
+              onCardHover={() => this.handleFriendPreview(currentUser)}
+              onCardLeave={() => this.handleEndPreview()} />
           </div>
 
           {
-            reversed.map((location, key) => {
-              const isCurrent = this.isCurrentLocation(location);
-
+            friends.map((friend, key) => {
               return (
-                <LocationCard
+                <FriendCard
                   key={key}
-                  location={location}
-                  isCurrent={isCurrent}
-                  isRemovable={true}
-                  onStartHighlight={() => this.handleStartHighlight(location)}
-                  onStopHighlight={() => this.handleStopHighlight()}
-                  onRemove={() => this.handleRemoveLocation(location)} />
+                  friend={friend}
+                  canViewProfile={true}
+                  isSelected={this.isUserSelected(friend)}
+                  onSelectFriend={() => this.handleFriendSelected(friend)}
+                  onCardHover={() => this.handleFriendPreview(friend)}
+                  onCardLeave={() => this.handleEndPreview()} />
               );
             })
           }
@@ -446,4 +416,4 @@ class MyProfile extends React.Component<MapProps, MapState> {
   }
 }
 
-export default MyProfile;
+export default DashboardMap;

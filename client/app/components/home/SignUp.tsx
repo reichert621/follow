@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, Link } from 'react-router-dom';
 import { get } from 'lodash';
 import { signup } from '../../helpers/auth';
 import '../../App.less';
@@ -60,10 +60,11 @@ class SignUp extends React.Component<RouteComponentProps<{}>, SignUpState> {
     return (
       <div>
         <div className='default-container'>
+          <h1 className='login-header'>Sign up</h1>
           <form onSubmit={this.handleSubmit.bind(this)}>
             <input
               type='text'
-              className='input-default -large'
+              className='input-default -large input-login'
               placeholder='Username'
               name='username'
               value={this.state.username}
@@ -71,7 +72,7 @@ class SignUp extends React.Component<RouteComponentProps<{}>, SignUpState> {
 
             <input
               type='email'
-              className='input-default -large'
+              className='input-default -large input-login'
               placeholder='Email'
               name='email'
               value={this.state.email}
@@ -79,7 +80,7 @@ class SignUp extends React.Component<RouteComponentProps<{}>, SignUpState> {
 
             <input
               type='password'
-              className='input-default -large'
+              className='input-default -large input-login'
               placeholder='Password'
               name='password'
               value={this.state.password}
@@ -87,7 +88,7 @@ class SignUp extends React.Component<RouteComponentProps<{}>, SignUpState> {
 
             <input
               type='password'
-              className='input-default -large'
+              className='input-default -large input-login'
               placeholder='Confirm Password'
               name='passwordConfirmation'
               value={this.state.passwordConfirmation}
@@ -103,6 +104,12 @@ class SignUp extends React.Component<RouteComponentProps<{}>, SignUpState> {
               style={{ marginLeft: 16 }}>
               {this.state.error || ''}
             </small>
+
+            <div style={{ marginTop: 16 }}>
+              <small>
+                Click <Link to='login'>here</Link> to log in!
+              </small>
+            </div>
           </form>
         </div>
       </div>

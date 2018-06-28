@@ -11,7 +11,8 @@ import {
   SignUp,
   SignUpComplete,
   About,
-  LeafletMap
+  LeafletMap,
+  AdminMap
 } from './components/home';
 import { UserProfile, MyProfile } from './components/profile';
 import './App.less';
@@ -23,6 +24,7 @@ ReactDOM.render(
         <Switch>
           <Route exact path='/' component={LeafletMap} />
           <Route path='/map' component={LeafletMap} />
+          <Route path='/all' component={AdminMap} />
           <Route path='/me' component={MyProfile} />
           <Route path='/u/:username' component={UserProfile} />
           <Route path='/login' component={Login} />

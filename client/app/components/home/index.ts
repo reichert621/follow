@@ -5,6 +5,7 @@ import SignUpComplete from './SignUpComplete';
 import About from './About';
 import Library from './Library';
 import LeafletMap from './Map';
+import AdminMap from './AdminMap';
 
 export {
   Home,
@@ -13,5 +14,6 @@ export {
   SignUpComplete,
   About,
   Library,
-  LeafletMap
+  LeafletMap,
+  AdminMap
 };

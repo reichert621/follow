@@ -1,5 +1,5 @@
 import { get, post } from './http';
-import { ILocation } from './locations';
+import { ILocation, formatLocation } from './locations';
 
 export interface IUser {
   id?: number;
@@ -18,13 +18,26 @@ export const findByUsername = (username: string): Promise<IUser> => {
     .then(res => res.user);
 };
 
-export const fetchFollowStatus = (username: string): Promise<any> => {
-  return get(`/api/users/${username}/status`);
+export const fetchUserProfile = (username: string): Promise<any> => {
+  return get(`/api/users/${username}/profile`)
+    .then(result => {
+      const { locations = [] } = result;
+
+      return {
+        ...result,
+        locations: locations.map(formatLocation)
+      };
+    });
 };
 
-export const fetchFriends = (): Promise<any> => {
+export const fetchFriends = (): Promise<IUser[]> => {
   return get('/api/friends')
     .then(res => res.friends);
+};
+
+export const fetchActiveUsers = (): Promise<IUser[]> => {
+  return get('/api/users/all')
+    .then(res => res.users);
 };
 
 export const followByUsername = (username: string): Promise<boolean> => {

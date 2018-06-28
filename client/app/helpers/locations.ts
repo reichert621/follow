@@ -20,6 +20,20 @@ export enum LocationComparator {
   AFTER = 1
 }
 
+export enum IconSize { SM, MD, LG }
+
+export enum IconColor {
+  BLUE = 'blue',
+  GRAY = 'gray',
+  BLACK = 'black'
+}
+
+export interface IconOptions {
+  size?: IconSize;
+  color?: IconColor;
+}
+
+
 export const formatLocation = (location: ILocation): ILocation => {
   const { latitude: lat, longitude: lng, date } = location;
 
