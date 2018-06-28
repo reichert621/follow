@@ -135,7 +135,23 @@ const fetchFriendsWithLocations = (userId, where = {}) => {
     });
 };
 
-const fetchFollowStatus = async (userId, username) => {
+const fetchAllUsers = (where = {}) => {
+  return fetch(where)
+    .then(users => {
+      const promises = users.map(user => {
+        const { id: userId } = user;
+
+        return Location.fetchByUserId(userId)
+          .then(locations => {
+            return { ...user, locations };
+          });
+      });
+
+      return Promise.all(promises);
+    });
+};
+
+const fetchUserProfile = async (userId, username) => {
   const friend = await findByUsername(username);
 
   if (!friend || !friend.id) {
@@ -144,8 +160,9 @@ const fetchFollowStatus = async (userId, username) => {
 
   const { id: friendId } = friend;
   const isFollowing = await UserFriend.isFollowing(userId, friendId);
+  const locations = await Location.fetchByUserId(friendId);
 
-  return { user: friend, isFollowing };
+  return { user: friend, isFollowing, locations };
 };
 
 const follow = (userId, username) => {
@@ -186,7 +203,8 @@ module.exports = {
   verifyUser,
   fetchFriendsByUserId,
   fetchFriendsWithLocations,
-  fetchFollowStatus,
+  fetchAllUsers,
+  fetchUserProfile,
   unfollow,
   follow
 };

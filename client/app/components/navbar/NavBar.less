@@ -1,0 +1,35 @@
+@white: #fff;
+@light-gray: #eee;
+@gray: #979797;
+@bright-blue: #33A2CC;
+
+.navbar-container {
+  background-color: @white;
+  border-bottom: 1px solid @gray;
+  padding: 16px 40px;
+  width: 100%;
+
+  h1 {
+    margin: 0;
+  }
+
+  .nav-list-container {
+    padding-top: 24px;
+  }
+
+  .nav-item {
+    color: @gray;
+    display: inline-block;
+    margin: 0px 16px;
+    padding: 2px 4px;
+
+    &:hover {
+      color: @bright-blue;
+    }
+
+    &.active {
+      color: @bright-blue;
+      border-bottom: 1px solid @bright-blue;
+    }
+  }
+}

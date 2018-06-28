@@ -49,10 +49,11 @@ class Login extends React.Component<LoginProps & RouteComponentProps<{}>, LoginS
     return (
       <div>
         <div className='default-container'>
+          <h1 className='login-header'>Login</h1>
           <form onSubmit={this.handleSubmit.bind(this)}>
             <input
               type='text'
-              className='input-default -large'
+              className='input-default -large input-login'
               placeholder='Username'
               name='username'
               value={this.state.username}
@@ -60,7 +61,7 @@ class Login extends React.Component<LoginProps & RouteComponentProps<{}>, LoginS
 
             <input
               type='password'
-              className='input-default -large'
+              className='input-default -large input-login'
               placeholder='Password'
               name='password'
               value={this.state.password}
@@ -79,7 +80,7 @@ class Login extends React.Component<LoginProps & RouteComponentProps<{}>, LoginS
 
             <div style={{ marginTop: 16 }}>
               <small>
-                Or click <Link to='signup'>here</Link> to sign up!
+                Click <Link to='signup'>here</Link> to sign up!
               </small>
             </div>
           </form>

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router';
+import { Link } from 'react-router-dom';
 import { all } from 'bluebird';
 import * as moment from 'moment';
 import { LatLngExpression, Icon } from 'leaflet';
@@ -9,12 +10,13 @@ import {
   TileLayer,
   Marker,
 } from 'react-leaflet';
-import 'react-datepicker/dist/react-datepicker.css';
-import 'react-select/dist/react-select.css';
 import 'leaflet/dist/leaflet.css';
 import {
   ILocation,
   LocationComparator,
+  IconColor,
+  IconSize,
+  IconOptions,
   formatLocation,
   getCurveCoordinates,
   fetchMyLocations,
@@ -28,92 +30,9 @@ import {
   fetchCurrentUser,
   fetchFriends
 } from '../../helpers/users';
+import NavBar, { NavItem } from '../navbar/NavBar';
+import { FriendCard } from '../common';
 import './Map.less';
-
-// TODO: move to separate file!
-interface FriendCardProps {
-  friend: IUser;
-  isSelected: boolean;
-  onSelectFriend: () => void;
-  onCardHover: () => void;
-  onCardLeave: () => void;
-}
-
-const FriendCard = ({
-  friend,
-  isSelected,
-  onSelectFriend,
-  onCardHover,
-  onCardLeave
-}: FriendCardProps) => {
-  if (!friend) return null;
-
-  const { username, locations = [] } = friend;
-  const currentLocation = findCurrentLocation(locations);
-  const nextLocation = findNextLocation(locations);
-  const {
-    name: currentName,
-    date: currentDate
-  } = currentLocation || {} as ILocation;
-  const {
-    name: nextName,
-    date: nextDate
-  } = nextLocation || {} as ILocation;
-
-  return (
-    <div className={`friend-card-container ${isSelected ? 'selected' : ''}`}
-      onClick={onSelectFriend}
-      onMouseEnter={onCardHover}
-      onMouseLeave={onCardLeave}>
-      <h3>{username}</h3>
-
-      <div>
-        <div className='friend-location-label'>
-          Current
-        </div>
-        <div className='friend-location-container clearfix'>
-          <div className='friend-location pull-left'>
-            {currentName || 'N/A'}
-          </div>
-          <div className='friend-location-date pull-right'>
-            since {moment(currentDate).format('MMM DD')}
-          </div>
-        </div>
-      </div>
-
-      {nextName &&
-        <div>
-          <div className='friend-location-label'>
-            Next
-          </div>
-          <div className='friend-location-container clearfix'>
-            <div className='friend-location pull-left'>
-              {nextName || 'N/A'}
-            </div>
-            <div className='friend-location-date pull-right'>
-              on {moment(nextDate).format('MMM DD')}
-            </div>
-          </div>
-        </div>
-      }
-    </div>
-  );
-};
-
-enum IconSize { SM, MD, LG }
-
-enum IconColor {
-  BLUE = 'blue',
-  GRAY = 'gray',
-  BLACK = 'black'
-}
-
-interface IconOptions {
-  size?: IconSize;
-  color?: IconColor;
-}
-
-type Callback = (err?: any, result?: any) => void;
 
 interface MapProps extends RouteComponentProps<{}> {}
 
@@ -384,6 +303,10 @@ class DashboardMap extends React.Component<MapProps, MapState> {
 
     return (
       <div className=''>
+        <NavBar
+          title='Dashboard'
+          active={NavItem.DASHBOARD} />
+
         <div className='map-container pull-left'>
           <Map center={center} zoom={zoom}>
             <TileLayer
@@ -462,9 +385,16 @@ class DashboardMap extends React.Component<MapProps, MapState> {
             <FriendCard
               friend={currentUser}
               isSelected={this.isUserSelected(currentUser)}
+              canViewProfile={true}
               onSelectFriend={() => this.handleFriendSelected(currentUser)}
               onCardHover={() => this.handleFriendPreview(currentUser)}
               onCardLeave={() => this.handleEndPreview()} />
+          </div>
+
+          <div className={`friends-list-empty text-center ${
+            friends && friends.length ? 'hidden' : ''
+          }`}>
+            <Link to='/all'>Click here</Link> to find people to follow!
           </div>
 
           {
@@ -474,6 +404,7 @@ class DashboardMap extends React.Component<MapProps, MapState> {
                   key={key}
                   friend={friend}
                   isSelected={this.isUserSelected(friend)}
+                  canViewProfile={true}
                   onSelectFriend={() => this.handleFriendSelected(friend)}
                   onCardHover={() => this.handleFriendPreview(friend)}
                   onCardLeave={() => this.handleEndPreview()} />

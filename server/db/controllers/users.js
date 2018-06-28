@@ -53,13 +53,21 @@ module.exports = {
       .catch(err => handleError(res, err));
   },
 
-  fetchFollowStatus(req, res) {
+  fetchAllUsers(req, res) {
+    const { filter = {} } = req.params;
+
+    return User.fetchAllUsers(filter)
+      .then(users => res.json({ users }))
+      .catch(err => handleError(res, err));
+  },
+
+  fetchUserProfile(req, res) {
     const { user, params } = req;
     const { id: userId } = user;
     const { username } = params;
 
-    return User.fetchFollowStatus(userId, username)
-      .then(({ user, isFollowing }) => res.json({ user, isFollowing }))
+    return User.fetchUserProfile(userId, username)
+      .then(result => res.json(result))
       .catch(err => handleError(res, err));
   },
 
