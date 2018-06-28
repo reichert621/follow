@@ -1,10 +1,11 @@
 import { capitalize, sortBy, reduce, max } from 'lodash';
 import * as moment from 'moment';
-import { get, post } from './http';
+import { get, post, del } from './http';
 import { LatLngExpression } from 'leaflet';
 import { lineString, bezierSpline } from '@turf/turf';
 
 export interface ILocation {
+  id?: number;
   name?: string;
   lat: number;
   latitude?: number;
@@ -118,6 +119,11 @@ export const addMyLocation = (
   return post('/api/locations/me', { ...location, date })
     .then(res => res.location)
     .then(location => formatLocation(location));
+};
+
+export const removeUserLocation = (locationId: number): Promise<boolean> => {
+  return del(`api/locations/${locationId}`)
+    .then(res => res.success);
 };
 
 const square = (n: number) => n * n;

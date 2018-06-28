@@ -15,7 +15,8 @@
   width: 72%;
 }
 
-.friends-list-container {
+.friends-list-container,
+.locations-list-container {
   margin: 40px auto;
   max-width: 560px;
   padding-right: 40px;
@@ -119,6 +120,42 @@
   .friend-location-date {
     font-size: 14px;
     line-height: 22px;
+  }
+}
+
+// TODO: move to different file
+.x-icon {
+  height: 18px;
+  margin-top: 2px;
+  transform: rotate(45deg);
+}
+
+.location-card-container {
+  background-color: @white;
+  border: 1px solid @light-gray-2;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  padding: 16px;
+
+  .x-icon {
+    visibility: hidden;
+  }
+
+  &:hover {
+    border-color: @light-blue;
+    cursor: pointer;
+
+    .x-icon {
+      visibility: visible;
+    }
+  }
+
+  &.selected {
+    border-color: @bright-blue;
+
+    h3 {
+      color: @bright-blue;
+    }
   }
 }
 
