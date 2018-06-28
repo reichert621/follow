@@ -1,3 +1,7 @@
 import UserProfile from './UserProfile';
+import MyProfile from './MyProfile';
 
-export default UserProfile;
+export {
+  UserProfile,
+  MyProfile
+};

@@ -30,6 +30,7 @@ api.post('/users/:username/unfollow', isAuthenticated, users.unfollow);
 api.get('/locations/all', locations.fetch);
 api.get('/locations/me', isAuthenticated, locations.fetchMyLocations);
 api.post('/locations/me', isAuthenticated, locations.createMyLocation);
+api.delete('/locations/:id', isAuthenticated, locations.remove);
 
 api.get('/locations/coordinates', isAuthenticated, maps.coordinates);
 api.get('/locations/suggestions', isAuthenticated, maps.suggestions);

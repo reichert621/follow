@@ -43,7 +43,11 @@ const update = (id, params) => {
     .then(success => findById(id));
 };
 
-const destroy = (id) => {
+const destroy = (userId, locationId) => {
+  return findOne({ userId, locationId }).delete();
+};
+
+const destroyById = (id) => {
   return findById(id).delete();
 };
 
@@ -53,5 +57,6 @@ module.exports = {
   create,
   findOrCreate,
   update,
-  destroy
+  destroy,
+  destroyById
 };

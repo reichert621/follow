@@ -13,7 +13,7 @@ import {
   About,
   LeafletMap
 } from './components/home';
-import UserProfile from './components/profile';
+import { UserProfile, MyProfile } from './components/profile';
 import './App.less';
 
 ReactDOM.render(
@@ -23,6 +23,7 @@ ReactDOM.render(
         <Switch>
           <Route exact path='/' component={LeafletMap} />
           <Route path='/map' component={LeafletMap} />
+          <Route path='/me' component={MyProfile} />
           <Route path='/u/:username' component={UserProfile} />
           <Route path='/login' component={Login} />
           <Route path='/signup' component={SignUp} />
