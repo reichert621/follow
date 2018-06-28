@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { logout } from '../../helpers/auth';
-import './Navbar.less';
+import './Nav.less';
 
 export enum NavItem {
   DASHBOARD = 'dashboard',
