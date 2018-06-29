@@ -54,9 +54,11 @@ module.exports = {
   },
 
   fetchAllUsers(req, res) {
-    const { filter = {} } = req.params;
+    const { params, user } = req;
+    const { id: userId } = user;
+    const { filter = {} } = params;
 
-    return User.fetchAllUsers(filter)
+    return User.fetchAllUsers(userId, filter)
       .then(users => res.json({ users }))
       .catch(err => handleError(res, err));
   },

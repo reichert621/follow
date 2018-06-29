@@ -27,10 +27,11 @@ import {
 import {
   IUser,
   fetchCurrentUser,
-  fetchActiveUsers
+  fetchActiveUsers,
+  toggleFollowByUsername
 } from '../../helpers/users';
 import NavBar, { NavItem } from '../navbar/NavBar';
-import { FriendCard } from '../common';
+import { FriendCard, FollowFriendCard } from '../common';
 import './Map.less';
 
 interface MapProps extends RouteComponentProps<{}> {}
@@ -282,6 +283,26 @@ class DashboardMap extends React.Component<MapProps, MapState> {
     }
   }
 
+  handleToggleFollow(user: IUser) {
+    const { friends = [] } = this.state;
+    const { id, username, isFollowing } = user;
+    const shouldFollow = !isFollowing;
+
+    return toggleFollowByUsername(username, shouldFollow)
+      .then(result => {
+        return this.setState({
+          friends: friends.map(friend => {
+            return friend.id === id
+              ? { ...friend, isFollowing: shouldFollow }
+              : friend;
+          })
+        });
+      })
+      .catch(err => {
+        console.log('Error following user!', err);
+      });
+  }
+
   render() {
     const {
       currentUser,
@@ -399,11 +420,12 @@ class DashboardMap extends React.Component<MapProps, MapState> {
           {
             friends.map((friend, key) => {
               return (
-                <FriendCard
+                <FollowFriendCard
                   key={key}
                   friend={friend}
-                  canViewProfile={true}
+                  canFollow={true}
                   isSelected={this.isUserSelected(friend)}
+                  onToggleFollow={() => this.handleToggleFollow(friend)}
                   onSelectFriend={() => this.handleFriendSelected(friend)}
                   onCardHover={() => this.handleFriendPreview(friend)}
                   onCardLeave={() => this.handleEndPreview()} />

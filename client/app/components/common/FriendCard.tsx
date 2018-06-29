@@ -52,9 +52,9 @@ const FriendCard = ({
       <div className='clearfix'>
         <h3 className='pull-left'>{username}</h3>
 
-        {isSelected && canViewProfile &&
+        {canViewProfile &&
           <Link to={`/u/${username}`}>
-            <button style={style} className='btn-default -sm -faded pull-right'>
+            <button  className='btn-default -sm friend-card-btn pull-right'>
               View Profile
             </button>
           </Link>

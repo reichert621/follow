@@ -135,15 +135,18 @@ const fetchFriendsWithLocations = (userId, where = {}) => {
     });
 };
 
-const fetchAllUsers = (where = {}) => {
+const fetchAllUsers = (userId, where = {}) => {
   return fetch(where)
     .then(users => {
       const promises = users.map(user => {
-        const { id: userId } = user;
-
-        return Location.fetchByUserId(userId)
-          .then(locations => {
-            return { ...user, locations };
+        const { id: friendId } = user;
+        // TODO: this code is very similar to the code in `fetchUserProfile`
+        return Promise.all([
+          Location.fetchByUserId(friendId),
+          UserFriend.isFollowing(userId, friendId)
+        ])
+          .then(([locations, isFollowing]) => {
+            return { ...user, locations, isFollowing };
           });
       });
 

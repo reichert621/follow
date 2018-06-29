@@ -6,6 +6,7 @@ export interface IUser {
   username: string;
   email: string;
   locations?: ILocation[];
+  isFollowing?: boolean;
 }
 
 export const fetchCurrentUser = (): Promise<IUser> => {
