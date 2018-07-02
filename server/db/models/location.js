@@ -1,6 +1,9 @@
 const { first } = require('lodash');
+const moment = require('moment');
 const knex = require('../knex');
 const UserLocation = require('./user_location');
+
+const DATE_FORMAT = 'YYYY-MM-DD';
 
 const Location = () => knex('locations');
 
@@ -54,7 +57,18 @@ const fetchByUserId = (userId, where = {}) => {
     .from('locations as l')
     .innerJoin('user_locations as ul', 'ul.locationId', 'l.id')
     .where({ ...where, 'ul.userId': userId })
-    .orderBy('ul.date', 'asc');
+    .orderBy('ul.date', 'asc')
+    .then(locations => {
+      return locations.map(location => {
+        const { date } = location;
+
+        return {
+          ...location,
+          _date: date,
+          date: moment.utc(date).format(DATE_FORMAT)
+        };
+      });
+    });
 };
 
 const addUserLocation = async (userId, params) => {
